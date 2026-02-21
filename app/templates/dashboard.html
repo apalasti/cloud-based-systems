@@ -1,0 +1,44 @@
+{% extends "base.html" %}
+{% block title %}Dashboard{% endblock %}
+{% block content %}
+<h1>Photo Gallery</h1>
+{% if flash == "uploaded" %}
+<p style="color: green;">Photo uploaded successfully.</p>
+{% endif %}
+{% if flash == "deleted" %}
+<p style="color: green;">Photo deleted.</p>
+{% endif %}
+<p>
+  Sort by:
+  <a href="/?sort=name">Name</a> |
+  <a href="/?sort=date">Date</a>
+</p>
+<table>
+  <thead>
+    <tr>
+      <th>Name</th>
+      <th>Upload Date</th>
+      <th></th>
+      {% if current_user %}<th></th>{% endif %}
+    </tr>
+  <tbody>
+    {% for photo in photos %}
+    <tr>
+      <td><a href="/photo/{{ photo.id }}">{{ photo.name }}</a></td>
+      <td>{{ photo.created_at.strftime('%Y-%m-%d %H:%M') }}</td>
+      <td><a href="/photo/{{ photo.id }}">View</a></td>
+      {% if current_user %}
+      <td>
+        <form action="/photo/{{ photo.id }}/delete" method="post" style="display:inline;" onsubmit="return confirm('Delete this photo?');">
+          <button type="submit">Delete</button>
+        </form>
+      </td>
+      {% endif %}
+    </tr>
+    {% endfor %}
+  </tbody>
+</table>
+{% if not photos %}
+<p>No photos yet.</p>
+{% endif %}
+{% endblock %}

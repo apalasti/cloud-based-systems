@@ -1,0 +1,11 @@
+{% extends "base.html" %}
+{% block title %}Upload Photo{% endblock %}
+{% block content %}
+<h1>Upload Photo</h1>
+<form method="post" action="/upload" enctype="multipart/form-data">
+  <label>Name (max 40 chars) <input type="text" name="name" maxlength="40" required></label><br>
+  <label>Image file <input type="file" name="file" accept="image/*" required></label><br>
+  <button type="submit">Upload</button>
+</form>
+<p><a href="/">Back to dashboard</a></p>
+{% endblock %}

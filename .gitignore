@@ -134,6 +134,10 @@ celerybeat.pid
 # SageMath parsed files
 *.sage.py
 
+# App uploads (directory kept via .gitkeep)
+app/static/uploads/*
+!app/static/uploads/.gitkeep
+
 # Environments
 .env
 .envrc
