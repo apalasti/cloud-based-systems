@@ -1,0 +1,13 @@
+.git
+.env
+*.db
+.venv
+venv
+__pycache__
+.cursor
+*.pyc
+*.pyo
+README.md
+agent-transcripts
+.plan.md
+*.plan.md

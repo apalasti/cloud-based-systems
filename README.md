@@ -13,6 +13,17 @@
    ```
 3. Open http://127.0.0.1:8000
 
+## Run with Docker
+
+1. Copy `.env.example` to `.env` and set `SECRET_KEY` (and optionally other vars). For Docker, `DATABASE_URL` and `UPLOAD_DIR` are set automatically in `docker-compose.yml` to use the `/data` volume.
+2. Build and start:
+   ```bash
+   docker compose up --build
+   ```
+3. Open http://127.0.0.1:8000
+
+Data (SQLite DB and uploads) is stored in the `photo_data` volume and persists across restarts. To run the image without Compose: build the image, then run with a volume mounted at `/data` and env vars `DATABASE_URL=sqlite:////data/app.db` and `UPLOAD_DIR=/data/uploads`.
+
 ---
 
 # Technical Specification
