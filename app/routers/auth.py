@@ -1,3 +1,5 @@
+import logging
+
 from fastapi import APIRouter, Depends, Form, HTTPException, Request, status
 from fastapi.responses import HTMLResponse, RedirectResponse
 from fastapi.templating import Jinja2Templates
@@ -9,6 +11,7 @@ from app.models import User
 from app.services.auth import create_access_token, get_password_hash
 
 router = APIRouter(prefix="/auth", tags=["auth"])
+logger = logging.getLogger(__name__)
 templates = Jinja2Templates(directory="app/templates")
 
 
@@ -24,8 +27,8 @@ def register(
     db: Session = Depends(get_db),
 ):
     if db.query(User).filter(User.username == username).first():
+        logger.warning("Registration rejected: username already registered: %s", username)
         raise HTTPException(status_code=400, detail="Username already registered")
-    print(password)
     user = User(username=username, hashed_password=get_password_hash(password))
     db.add(user)
     db.commit()
@@ -33,6 +36,7 @@ def register(
     token = create_access_token(data={"sub": user.username})
     response = RedirectResponse(url="/", status_code=status.HTTP_303_SEE_OTHER)
     response.set_cookie(key=ACCESS_TOKEN_COOKIE, value=token, httponly=True, samesite="lax")
+    logger.info("User registered: %s", username)
     return response
 
 
@@ -51,15 +55,19 @@ def login(
 
     user = db.query(User).filter(User.username == username).first()
     if not user or not verify_password(password, user.hashed_password):
+        logger.warning("Login failed for user: %s", username)
         raise HTTPException(status_code=401, detail="Incorrect username or password")
     token = create_access_token(data={"sub": user.username})
     response = RedirectResponse(url="/", status_code=status.HTTP_303_SEE_OTHER)
     response.set_cookie(key=ACCESS_TOKEN_COOKIE, value=token, httponly=True, samesite="lax")
+    logger.info("User logged in: %s", username)
     return response
 
 
 @router.post("/logout")
-def logout():
+def logout(current_user: User | None = Depends(get_current_user_optional)):
+    if current_user:
+        logger.info("User logged out: %s", current_user.username)
     response = RedirectResponse(url="/", status_code=status.HTTP_303_SEE_OTHER)
     response.delete_cookie(ACCESS_TOKEN_COOKIE)
     return response

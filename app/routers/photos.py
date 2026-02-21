@@ -1,3 +1,5 @@
+import logging
+
 from fastapi import APIRouter, Depends, File, Form, HTTPException, Request, UploadFile
 from fastapi.responses import RedirectResponse
 from fastapi.templating import Jinja2Templates
@@ -14,6 +16,7 @@ from app.services.photo import (
 )
 
 router = APIRouter(tags=["photos"])
+logger = logging.getLogger(__name__)
 templates = Jinja2Templates(directory="app/templates")
 
 
@@ -32,18 +35,22 @@ def upload_photo(
     current_user: User = Depends(get_current_user),
 ):
     if len(name) > 40:
+        logger.warning("Upload rejected: name too long (user_id=%s)", current_user.id)
         raise HTTPException(status_code=400, detail="Name must be at most 40 characters")
     content_type = file.content_type or ""
     if not content_type.startswith("image/"):
+        logger.warning("Upload rejected: not an image (user_id=%s)", current_user.id)
         raise HTTPException(status_code=400, detail="File must be an image")
     content = file.file.read()
     if len(content) > MAX_UPLOAD_BYTES:
+        logger.warning("Upload rejected: file too large (user_id=%s)", current_user.id)
         raise HTTPException(
             status_code=400,
             detail=f"File too large (max {MAX_UPLOAD_BYTES // (1024*1024)} MB)",
         )
     file_name = save_upload_file(content, file.filename or "image")
     create_photo(db, name=name, file_name=file_name, user_id=current_user.id)
+    logger.info("Photo uploaded: name=%s user_id=%s", name, current_user.id)
     return RedirectResponse(url="/?flash=uploaded", status_code=303)
 
 
@@ -55,8 +62,10 @@ def delete_photo_api(
 ):
     photo = db.query(Photo).filter(Photo.id == photo_id).first()
     if not photo:
+        logger.warning("Delete rejected: photo not found id=%s", photo_id)
         raise HTTPException(status_code=404, detail="Photo not found")
     delete_photo(db, photo)
+    logger.info("Photo deleted: id=%s", photo_id)
     return {"ok": True}
 
 
@@ -68,6 +77,8 @@ def delete_photo_form(
 ):
     photo = db.query(Photo).filter(Photo.id == photo_id).first()
     if not photo:
+        logger.warning("Delete rejected: photo not found id=%s", photo_id)
         raise HTTPException(status_code=404, detail="Photo not found")
     delete_photo(db, photo)
+    logger.info("Photo deleted: id=%s", photo_id)
     return RedirectResponse(url="/?flash=deleted", status_code=303)

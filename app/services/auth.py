@@ -1,9 +1,12 @@
+import logging
 from datetime import datetime, timedelta, timezone
 
 import bcrypt
 from jose import JWTError, jwt
 
 from app.config import settings
+
+logger = logging.getLogger(__name__)
 
 
 def verify_password(plain_password: str, hashed_password: str) -> bool:
@@ -32,4 +35,5 @@ def decode_access_token(token: str) -> dict | None:
         payload = jwt.decode(token, settings.SECRET_KEY, algorithms=[settings.ALGORITHM])
         return payload
     except JWTError:
+        logger.debug("JWT decode failed: invalid or expired token")
         return None

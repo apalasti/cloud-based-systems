@@ -14,6 +14,7 @@ class Settings(BaseSettings):
     ALGORITHM: str = "HS256"
     ACCESS_TOKEN_EXPIRE_MINUTES: int = 30
     UPLOAD_DIR: str = "static/uploads"
+    LOG_LEVEL: str = "INFO"
 
     def get_upload_dir(self) -> Path:
         base = Path(__file__).resolve().parent
