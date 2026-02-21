@@ -11,7 +11,7 @@
    ```bash
    uv run uvicorn app.main:app --reload
    ```
-3. Open http://127.0.0.1:8000
+3. Open http://127.0.0.1:5000
 
 ## Run with Docker
 
@@ -20,7 +20,7 @@
    ```bash
    docker compose up --build
    ```
-3. Open http://127.0.0.1:8000
+3. Open http://127.0.0.1:5000
 
 Data (SQLite DB and uploads) is stored in the `photo_data` volume and persists across restarts. To run the image without Compose: build the image, then run with a volume mounted at `/data` and env vars `DATABASE_URL=sqlite:////data/app.db` and `UPLOAD_DIR=/data/uploads`.
 

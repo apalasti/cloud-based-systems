@@ -2,7 +2,7 @@ services:
   app:
     build: .
     ports:
-      - "8000:8000"
+      - "5000:5000"
     env_file: .env.example
     environment:
       DATABASE_URL: sqlite:////data/app.db

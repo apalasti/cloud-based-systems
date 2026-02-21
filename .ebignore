@@ -1,0 +1,20 @@
+# Exclude docker-compose so EB uses single-container mode.
+# Single-container mode runs nginx and proxies port 80 -> container (5000).
+# With docker-compose, EB stops nginx and the app is unreachable on port 80.
+docker-compose.yml
+# .env is never deployed; set env vars in EB (eb setenv or Console → Configuration → Software).
+.env
+docker-compose*.yml
+logs/
+data/
+.git/
+.env
+*.db
+.venv
+venv
+__pycache__
+*.pyc
+*.pyo
+README.md
+.plan.md
+*.plan.md
