@@ -11,7 +11,7 @@ class Photo(Base):
 
     id = Column(Integer, primary_key=True, index=True)
     name = Column(String(40), nullable=False)
-    file_path = Column(String, nullable=False)
+    file_name = Column(String, nullable=False)
     created_at = Column(DateTime, default=datetime.utcnow)
     user_id = Column(Integer, ForeignKey("users.id"), nullable=True)
 

@@ -42,8 +42,8 @@ def upload_photo(
             status_code=400,
             detail=f"File too large (max {MAX_UPLOAD_BYTES // (1024*1024)} MB)",
         )
-    file_path = save_upload_file(content, file.filename or "image")
-    create_photo(db, name=name, file_path=file_path, user_id=current_user.id)
+    file_name = save_upload_file(content, file.filename or "image")
+    create_photo(db, name=name, file_name=file_name, user_id=current_user.id)
     return RedirectResponse(url="/?flash=uploaded", status_code=303)
 
 

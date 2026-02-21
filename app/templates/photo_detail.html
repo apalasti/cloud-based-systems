@@ -3,7 +3,7 @@
 {% block content %}
 <h1>{{ photo.name }}</h1>
 <p>Uploaded: {{ photo.created_at.strftime('%Y-%m-%d %H:%M') }}</p>
-<img src="{{ photo.file_path }}" alt="{{ photo.name }}" style="max-width: 100%;">
+<img src="/static/uploads/{{ photo.file_name }}" alt="{{ photo.name }}" style="max-width: 100%;">
 <p><a href="/">Back to dashboard</a></p>
 {% if current_user %}
 <form action="/photo/{{ photo.id }}/delete" method="post" onsubmit="return confirm('Delete this photo?');">

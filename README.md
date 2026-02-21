@@ -73,6 +73,6 @@ The database consists of two primary tables linked by a one-to-many relationship
 |  | `hashed_password` | String | Not Null |
 | **Photos** | `id` | Integer | Primary Key |
 |  | `name` | String(40) | Not Null |
-|  | `file_path` | String | Not Null |
+|  | `file_name` | String | Not Null |
 |  | `created_at` | DateTime | Default: Now |
 |  | `user_id` | Integer | Foreign Key (Users.id) |
