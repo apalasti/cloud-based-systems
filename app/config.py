@@ -12,7 +12,7 @@ class Settings(BaseSettings):
     )
 
     SECRET_KEY: str = "dev-secret-change-in-production"
-    DATABASE_URL: str = None
+    DATABASE_URL: str | None = None
     RDS_HOSTNAME: str | None = None
     RDS_PORT: str | None = None
     RDS_DB_NAME: str | None = None
