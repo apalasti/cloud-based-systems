@@ -39,11 +39,11 @@ class Settings(BaseSettings):
         ):
             user = quote_plus(self.RDS_USERNAME)
             password = quote_plus(self.RDS_PASSWORD)
-            url = (
+            self.DATABASE_URL = (
                 f"postgresql://{user}:{password}@"
                 f"{self.RDS_HOSTNAME}:{self.RDS_PORT}/{self.RDS_DB_NAME}"
             )
-            return self.model_copy(update={"DATABASE_URL": url})
+            return self
         raise ValueError(
             "Set DATABASE_URL or all of RDS_HOSTNAME, RDS_PORT, RDS_DB_NAME, RDS_USERNAME, RDS_PASSWORD"
         )
