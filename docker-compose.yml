@@ -1,12 +1,27 @@
 services:
+  postgres:
+    image: postgres:16-alpine
+    environment:
+      POSTGRES_USER: app
+      POSTGRES_PASSWORD: secret
+      POSTGRES_DB: appdb
+    volumes:
+      - postgres_data:/var/lib/postgresql/data
+    restart: unless-stopped
+
   app:
     build: .
     ports:
       - "5000:5000"
     env_file: .env.example
     environment:
-      DATABASE_URL: sqlite:////data/app.db
+      DATABASE_URL: postgresql://app:secret@postgres:5432/appdb
       UPLOAD_DIR: /data/uploads
     volumes:
       - ./data:/data
+    depends_on:
+      - postgres
     restart: unless-stopped
+
+volumes:
+  postgres_data:

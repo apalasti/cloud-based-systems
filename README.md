@@ -2,7 +2,7 @@
 
 ## Run the application
 
-1. **Setup:** Copy `.env.example` to `.env` and set `SECRET_KEY` (and optionally other vars). Use `uv` for dependencies:
+1. **Setup:** Copy `.env.example` to `.env` and set `SECRET_KEY`, `DATABASE_URL` (PostgreSQL), and optionally other vars. Install dependencies with `uv`:
    ```bash
    uv sync
    uv run alembic upgrade head
@@ -15,14 +15,14 @@
 
 ## Run with Docker
 
-1. Copy `.env.example` to `.env` and set `SECRET_KEY` (and optionally other vars). For Docker, `DATABASE_URL` and `UPLOAD_DIR` are set automatically in `docker-compose.yml` to use the `/data` volume.
+1. Copy `.env.example` to `.env` and set `SECRET_KEY` (and optionally other vars). For Docker, `DATABASE_URL` (PostgreSQL) and `UPLOAD_DIR` are set in `docker-compose.yml`; the app runs with a local Postgres service.
 2. Build and start:
    ```bash
    docker compose up --build
    ```
 3. Open http://127.0.0.1:5000
 
-Data (SQLite DB and uploads) is stored in the `photo_data` volume and persists across restarts. To run the image without Compose: build the image, then run with a volume mounted at `/data` and env vars `DATABASE_URL=sqlite:////data/app.db` and `UPLOAD_DIR=/data/uploads`.
+Postgres data is stored in the `postgres_data` volume; uploads in `./data` (mounted at `/data/uploads`). On Elastic Beanstalk with an attached RDS instance, the app reads `RDS_HOSTNAME`, `RDS_PORT`, `RDS_DB_NAME`, `RDS_USERNAME`, and `RDS_PASSWORD` (injected by EB) and builds `DATABASE_URL` automatically if you do not set it. To run the image without Compose: use a volume at `/data` and set `DATABASE_URL` (postgresql) and `UPLOAD_DIR`.
 
 ---
 
@@ -38,9 +38,9 @@ Server-side rendered (SSR) web application for managing a personal photo gallery
 * **Template Engine:** Jinja2
 * **Database ORM:** SQLAlchemy
 * **Migration Tool:** Alembic
-* **Database:** SQLite
+* **Database:** PostgreSQL (on EB with RDS, the app uses RDS_* env vars to build the connection URL)
 * **Authentication:** OAuth2 (Password bearer) with JWT.
-* **Use uv for dependency management**
+* **Dependencies:** Install with `uv sync` (uv)
 
 ---
 
