@@ -22,4 +22,3 @@ EXPOSE 5000
 ENV UVICORN_WORKERS=4
 
 ENTRYPOINT ["/docker-entrypoint.sh"]
-CMD ["uv", "run", "uvicorn", "app.main:app", "--host", "0.0.0.0", "--port", "5000", "--workers", "${UVICORN_WORKERS:-4}"]

@@ -17,6 +17,7 @@ services:
     environment:
       DATABASE_URL: postgresql://app:secret@postgres:5432/appdb
       UPLOAD_DIR: /data/uploads
+      UVICORN_WORKERS: 1
     volumes:
       - ./data:/data
     depends_on:
