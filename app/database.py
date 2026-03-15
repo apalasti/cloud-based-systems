@@ -6,7 +6,12 @@ from sqlalchemy.orm import sessionmaker, declarative_base
 from app.config import settings
 
 logger = logging.getLogger(__name__)
-engine = create_engine(settings.DATABASE_URL)
+engine = create_engine(
+    settings.DATABASE_URL,
+    pool_size=10,
+    max_overflow=20,
+    pool_pre_ping=True,
+)
 logger.debug("Database engine created")
 SessionLocal = sessionmaker(autocommit=False, autoflush=False, bind=engine)
 Base = declarative_base()
