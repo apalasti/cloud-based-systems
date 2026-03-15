@@ -19,6 +19,9 @@ class Settings(BaseSettings):
     RDS_USERNAME: str | None = None
     RDS_PASSWORD: str | None = None
 
+    DB_POOL_SIZE: int = 5
+    DB_MAX_OVERFLOW: int = 10
+
     ALGORITHM: str = "HS256"
     ACCESS_TOKEN_EXPIRE_MINUTES: int = 30
     UPLOAD_DIR: str = "static/uploads"
