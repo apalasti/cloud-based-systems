@@ -80,7 +80,7 @@ class PhotoGalleryUser(HttpUser):
         photo_id = random.choice(self.uploaded_photo_ids)
         self.client.get(f"/photo/{photo_id}", headers=HEADERS)
 
-    @task(1)
+    @task(3)
     def delete_photo(self):
         if not self.uploaded_photo_ids:
             return

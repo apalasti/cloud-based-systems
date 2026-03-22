@@ -21,7 +21,7 @@ class Settings(BaseSettings):
 
     DB_POOL_SIZE: int = 5
     # Extra connections SQLAlchemy may open beyond DB_POOL_SIZE when the pool is busy (then closed when idle).
-    DB_MAX_OVERFLOW: int = 10
+    DB_MAX_OVERFLOW: int = 5
     # Seconds before recycling a connection; -1 disables (SQLAlchemy default).
     DB_POOL_RECYCLE: int = 15 * 60
 
