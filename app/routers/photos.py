@@ -1,12 +1,12 @@
 import logging
 
 from fastapi import APIRouter, Depends, File, Form, HTTPException, Request, UploadFile
-from fastapi.responses import RedirectResponse
+from fastapi.responses import JSONResponse, RedirectResponse
 from fastapi.templating import Jinja2Templates
 from sqlalchemy.orm import Session
 
 from app.database import get_db
-from app.dependencies import get_current_user
+from app.dependencies import get_current_user, prefers_json
 from app.models import Photo, User
 from app.services.photo import (
     create_photo,
@@ -29,6 +29,7 @@ def upload_form(request: Request, current_user: User = Depends(get_current_user)
 
 @router.post("/upload")
 def upload_photo(
+    request: Request,
     name: str = Form(max_length=40),
     file: UploadFile = File(...),
     db: Session = Depends(get_db),
@@ -36,7 +37,9 @@ def upload_photo(
 ):
     if len(name) > 40:
         logger.warning("Upload rejected: name too long (user_id=%s)", current_user.id)
-        raise HTTPException(status_code=400, detail="Name must be at most 40 characters")
+        raise HTTPException(
+            status_code=400, detail="Name must be at most 40 characters"
+        )
     content_type = file.content_type or ""
     if not content_type.startswith("image/"):
         logger.warning("Upload rejected: not an image (user_id=%s)", current_user.id)
@@ -46,31 +49,29 @@ def upload_photo(
         logger.warning("Upload rejected: file too large (user_id=%s)", current_user.id)
         raise HTTPException(
             status_code=400,
-            detail=f"File too large (max {MAX_UPLOAD_BYTES // (1024*1024)} MB)",
+            detail=f"File too large (max {MAX_UPLOAD_BYTES // (1024 * 1024)} MB)",
         )
     file_name = save_upload_file(content, file.filename or "image")
-    create_photo(db, name=name, file_name=file_name, user_id=current_user.id)
+    photo = create_photo(db, name=name, file_name=file_name, user_id=current_user.id)
     logger.info("Photo uploaded: name=%s user_id=%s", name, current_user.id)
-    return RedirectResponse(url="/?flash=uploaded", status_code=303)
+
+    if prefers_json(request):
+        response = JSONResponse(
+            content={
+                "ok": True,
+                "photo_id": photo.id,
+                "redirect_url": "/?flash=uploaded",
+            }
+        )
+    else:
+        response = RedirectResponse(url="/?flash=uploaded", status_code=303)
+
+    return response
 
 
-@router.delete("/photo/{photo_id}")
-def delete_photo_api(
-    photo_id: int,
-    db: Session = Depends(get_db),
-    current_user: User = Depends(get_current_user),
-):
-    photo = db.query(Photo).filter(Photo.id == photo_id).first()
-    if not photo:
-        logger.warning("Delete rejected: photo not found id=%s", photo_id)
-        raise HTTPException(status_code=404, detail="Photo not found")
-    delete_photo(db, photo)
-    logger.info("Photo deleted: id=%s", photo_id)
-    return {"ok": True}
-
-
-@router.post("/photo/{photo_id}/delete")
+@router.delete("/photo/{photo_id}/delete")
 def delete_photo_form(
+    request: Request,
     photo_id: int,
     db: Session = Depends(get_db),
     current_user: User = Depends(get_current_user),
@@ -81,4 +82,10 @@ def delete_photo_form(
         raise HTTPException(status_code=404, detail="Photo not found")
     delete_photo(db, photo)
     logger.info("Photo deleted: id=%s", photo_id)
-    return RedirectResponse(url="/?flash=deleted", status_code=303)
+
+    if prefers_json(request):
+        response = JSONResponse(content={"ok": True, "redirect_url": "/?flash=deleted"})
+    else:
+        response = RedirectResponse(url="/?flash=deleted", status_code=303)
+
+    return response

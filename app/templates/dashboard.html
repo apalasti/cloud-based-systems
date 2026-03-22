@@ -29,7 +29,7 @@
       <td style="border: 1px solid #ccc; padding: 0.5em;"><a href="/photo/{{ photo.id }}">View</a></td>
       {% if current_user %}
       <td style="border: 1px solid #ccc; padding: 0.5em;">
-        <form action="/photo/{{ photo.id }}/delete" method="post" style="display:inline;" onsubmit="return confirm('Delete this photo?');">
+        <form action="/photo/{{ photo.id }}" method="delete" style="display:inline;" onsubmit="return confirm('Delete this photo?');">
           <button type="submit">Delete</button>
         </form>
       </td>

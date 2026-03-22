@@ -46,12 +46,16 @@ def get_current_user(
     username = payload.get("sub")
     if not username:
         logger.warning("Auth failure: token missing subject")
-        raise HTTPException(status_code=status.HTTP_401_UNAUTHORIZED, detail="Invalid token")
-    # Don't necesserily query the db for the user
+        raise HTTPException(
+            status_code=status.HTTP_401_UNAUTHORIZED, detail="Invalid token"
+        )
+    # Don't necesserily query the db for the user
     user = db.query(User).filter(User.username == username).first()
     if user is None:
         logger.warning("Auth failure: user not found for username=%s", username)
-        raise HTTPException(status_code=status.HTTP_401_UNAUTHORIZED, detail="User not found")
+        raise HTTPException(
+            status_code=status.HTTP_401_UNAUTHORIZED, detail="User not found"
+        )
     return user
 
 
@@ -68,3 +72,8 @@ def get_current_user_optional(
     if not username:
         return None
     return db.query(User).filter(User.username == username).first()
+
+
+def prefers_json(request: Request) -> bool:
+    accept = request.headers.get("accept", "")
+    return "application/json" in accept.lower()
