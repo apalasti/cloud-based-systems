@@ -1,6 +1,8 @@
 services:
   postgres:
     image: postgres:16-alpine
+    ports:
+      - "5432:5432"
     environment:
       POSTGRES_USER: app
       POSTGRES_PASSWORD: secret
@@ -17,12 +19,16 @@ services:
     environment:
       DATABASE_URL: postgresql://app:secret@postgres:5432/appdb
       UPLOAD_DIR: /data/uploads
-      UVICORN_WORKERS: 1
     volumes:
+      - ./app:/app/app
+      - ./alembic:/app/alembic
+      - ./alembic.ini:/app/alembic.ini
+      - ./pyproject.toml:/app/pyproject.toml
       - ./data:/data
     depends_on:
       - postgres
     restart: unless-stopped
+    command: uv run uvicorn app.main:app --host 0.0.0.0 --port 5000 --reload
 
 volumes:
   postgres_data:
