@@ -61,3 +61,8 @@ def get_username_optional(
     if payload is None:
         return None
     return payload.get("sub")
+
+
+def prefers_json(request: Request) -> bool:
+    accept = request.headers.get("accept", "")
+    return "application/json" in accept.lower()

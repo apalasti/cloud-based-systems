@@ -1,12 +1,16 @@
 import logging
 
 from fastapi import APIRouter, Depends, Form, HTTPException, Request, status
-from fastapi.responses import HTMLResponse, RedirectResponse
+from fastapi.responses import HTMLResponse, JSONResponse, RedirectResponse
 from fastapi.templating import Jinja2Templates
 from sqlalchemy.orm import Session
 
 from app.database import get_db
-from app.dependencies import ACCESS_TOKEN_COOKIE, get_username_optional
+from app.dependencies import (
+    ACCESS_TOKEN_COOKIE,
+    get_username_optional,
+    prefers_json,
+)
 from app.models import User
 from app.services.auth import create_access_token, get_password_hash
 
@@ -26,6 +30,7 @@ def register_form(
 
 @router.post("/register")
 def register(
+    request: Request,
     username: str = Form(),
     password: str = Form(),
     db: Session = Depends(get_db),
@@ -40,11 +45,19 @@ def register(
     db.commit()
     db.refresh(user)
     token = create_access_token(data={"sub": user.username})
-    response = RedirectResponse(url="/", status_code=status.HTTP_303_SEE_OTHER)
+    logger.info("User registered: %s", username)
+
+    if prefers_json(request):
+        response = JSONResponse(
+            content={"ok": True, "redirect_url": "/"},
+            status_code=status.HTTP_200_OK,
+        )
+    else:
+        response = RedirectResponse(url="/", status_code=status.HTTP_303_SEE_OTHER)
+
     response.set_cookie(
         key=ACCESS_TOKEN_COOKIE, value=token, httponly=True, samesite="lax"
     )
-    logger.info("User registered: %s", username)
     return response
 
 
@@ -57,6 +70,7 @@ def login_form(request: Request, username: str | None = Depends(get_username_opt
 
 @router.post("/login")
 def login(
+    request: Request,
     username: str = Form(),
     password: str = Form(),
     db: Session = Depends(get_db),
@@ -68,18 +82,31 @@ def login(
         logger.warning("Login failed for user: %s", username)
         raise HTTPException(status_code=401, detail="Incorrect username or password")
     token = create_access_token(data={"sub": user.username})
-    response = RedirectResponse(url="/", status_code=status.HTTP_303_SEE_OTHER)
+    logger.info("User logged in: %s", username)
+
+    if prefers_json(request):
+        response = JSONResponse(
+            content={"ok": True, "redirect_url": "/"},
+            status_code=status.HTTP_200_OK,
+        )
+    else:
+        response = RedirectResponse(url="/", status_code=status.HTTP_303_SEE_OTHER)
+
     response.set_cookie(
         key=ACCESS_TOKEN_COOKIE, value=token, httponly=True, samesite="lax"
     )
-    logger.info("User logged in: %s", username)
     return response
 
 
 @router.post("/logout")
-def logout(username: str | None = Depends(get_username_optional)):
+def logout(request: Request, username: str | None = Depends(get_username_optional)):
     if username:
         logger.info("User logged out: %s", username)
-    response = RedirectResponse(url="/", status_code=status.HTTP_303_SEE_OTHER)
+
+    if prefers_json(request):
+        response = JSONResponse(content={"ok": True, "redirect_url": "/"})
+    else:
+        response = RedirectResponse(url="/", status_code=status.HTTP_303_SEE_OTHER)
+
     response.delete_cookie(ACCESS_TOKEN_COOKIE)
     return response

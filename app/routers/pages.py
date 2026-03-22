@@ -1,10 +1,10 @@
 from fastapi import APIRouter, Depends, HTTPException, Request
-from fastapi.responses import HTMLResponse
+from fastapi.responses import HTMLResponse, JSONResponse
 from fastapi.templating import Jinja2Templates
 from sqlalchemy.orm import Session
 
 from app.database import get_db
-from app.dependencies import get_username_optional
+from app.dependencies import get_username_optional, prefers_json
 from app.models import Photo
 
 router = APIRouter(tags=["pages"])
@@ -25,6 +25,30 @@ def dashboard(
         query = query.order_by(Photo.created_at.desc())
     photos = query.all()
     flash = request.query_params.get("flash")
+
+    if prefers_json(request):
+        return JSONResponse(
+            content={
+                "photos": [
+                    {
+                        "id": p.id,
+                        "name": p.name,
+                        "file_name": p.file_name,
+                        "created_at": p.created_at.isoformat(),
+                        "user_id": p.user_id,
+                    }
+                    for p in photos
+                ],
+                "current_user": {
+                    "username": username,
+                }
+                if username
+                else None,
+                "sort": sort or "date",
+                "flash": flash,
+            }
+        )
+
     return templates.TemplateResponse(
         "dashboard.html",
         {
@@ -47,6 +71,25 @@ def photo_detail(
     photo = db.query(Photo).filter(Photo.id == photo_id).first()
     if not photo:
         raise HTTPException(status_code=404, detail="Photo not found")
+
+    if prefers_json(request):
+        return JSONResponse(
+            content={
+                "photo": {
+                    "id": photo.id,
+                    "name": photo.name,
+                    "file_name": photo.file_name,
+                    "created_at": photo.created_at.isoformat(),
+                    "user_id": photo.user_id,
+                },
+                "current_user": {
+                    "username": username,
+                }
+                if username
+                else None,
+            }
+        )
+
     return templates.TemplateResponse(
         "photo_detail.html",
         {"request": request, "photo": photo, "username": username},
