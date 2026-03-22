@@ -5,7 +5,7 @@
 <p>Uploaded: {{ photo.created_at.strftime('%Y-%m-%d %H:%M') }}</p>
 <img src="/static/uploads/{{ photo.file_name }}" alt="{{ photo.name }}" style="max-width: 100%;">
 <p><a href="/">Back to dashboard</a></p>
-{% if current_user %}
+{% if username %}
 <form action="/photo/{{ photo.id }}/delete" method="post" onsubmit="return confirm('Delete this photo?');">
   <button type="submit">Delete</button>
 </form>

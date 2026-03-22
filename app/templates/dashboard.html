@@ -19,7 +19,7 @@
       <th style="border: 1px solid #ccc; padding: 0.5em;">Name</th>
       <th style="border: 1px solid #ccc; padding: 0.5em;">Upload Date</th>
       <th style="border: 1px solid #ccc; padding: 0.5em;"></th>
-      {% if current_user %}<th style="border: 1px solid #ccc; padding: 0.5em;"></th>{% endif %}
+      {% if username %}<th style="border: 1px solid #ccc; padding: 0.5em;"></th>{% endif %}
     </tr>
   <tbody>
     {% for photo in photos %}
@@ -27,7 +27,7 @@
       <td style="border: 1px solid #ccc; padding: 0.5em;"><a href="/photo/{{ photo.id }}">{{ photo.name }}</a></td>
       <td style="border: 1px solid #ccc; padding: 0.5em;">{{ photo.created_at.strftime('%Y-%m-%d %H:%M') }}</td>
       <td style="border: 1px solid #ccc; padding: 0.5em;"><a href="/photo/{{ photo.id }}">View</a></td>
-      {% if current_user %}
+      {% if username %}
       <td style="border: 1px solid #ccc; padding: 0.5em;">
         <form action="/photo/{{ photo.id }}/delete" method="post" style="display:inline;" onsubmit="return confirm('Delete this photo?');">
           <button type="submit">Delete</button>

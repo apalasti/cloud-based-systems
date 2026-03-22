@@ -24,37 +24,6 @@ def _token_from_request(
     return access_token
 
 
-def get_current_user(
-    token: str | None = Depends(_token_from_request),
-    db: Session = Depends(get_db),
-) -> User:
-    if token is None:
-        logger.warning("Auth failure: no token provided")
-        raise HTTPException(
-            status_code=status.HTTP_401_UNAUTHORIZED,
-            detail="Not authenticated",
-            headers={"WWW-Authenticate": "Bearer"},
-        )
-    payload = decode_access_token(token)
-    if payload is None:
-        logger.warning("Auth failure: invalid or expired token")
-        raise HTTPException(
-            status_code=status.HTTP_401_UNAUTHORIZED,
-            detail="Invalid or expired token",
-            headers={"WWW-Authenticate": "Bearer"},
-        )
-    username = payload.get("sub")
-    if not username:
-        logger.warning("Auth failure: token missing subject")
-        raise HTTPException(status_code=status.HTTP_401_UNAUTHORIZED, detail="Invalid token")
-    # Don't necesserily query the db for the user
-    user = db.query(User).filter(User.username == username).first()
-    if user is None:
-        logger.warning("Auth failure: user not found for username=%s", username)
-        raise HTTPException(status_code=status.HTTP_401_UNAUTHORIZED, detail="User not found")
-    return user
-
-
 def get_current_user_optional(
     token: str | None = Depends(_token_from_request),
     db: Session = Depends(get_db),
@@ -68,3 +37,27 @@ def get_current_user_optional(
     if not username:
         return None
     return db.query(User).filter(User.username == username).first()
+
+
+def get_current_user(
+    token: str | None = Depends(_token_from_request),
+    db: Session = Depends(get_db),
+) -> User:
+    user = get_current_user_optional(token, db)
+    if user is None:
+        logger.warning("Auth failure: invalid token=%s", token)
+        raise HTTPException(
+            status_code=status.HTTP_401_UNAUTHORIZED, detail="Invalid token"
+        )
+    return user
+
+
+def get_username_optional(
+    token: str | None = Depends(_token_from_request),
+) -> str | None:
+    if token is None:
+        return None
+    payload = decode_access_token(token)
+    if payload is None:
+        return None
+    return payload.get("sub")

@@ -4,8 +4,8 @@ from fastapi.templating import Jinja2Templates
 from sqlalchemy.orm import Session
 
 from app.database import get_db
-from app.dependencies import get_current_user_optional
-from app.models import Photo, User
+from app.dependencies import get_username_optional
+from app.models import Photo
 
 router = APIRouter(tags=["pages"])
 templates = Jinja2Templates(directory="app/templates")
@@ -16,7 +16,7 @@ def dashboard(
     request: Request,
     sort: str | None = None,
     db: Session = Depends(get_db),
-    current_user: User | None = Depends(get_current_user_optional),
+    username: str | None = Depends(get_username_optional),
 ):
     query = db.query(Photo)
     if sort == "name":
@@ -30,7 +30,7 @@ def dashboard(
         {
             "request": request,
             "photos": photos,
-            "current_user": current_user,
+            "username": username,
             "sort": sort or "date",
             "flash": flash,
         },
@@ -42,12 +42,12 @@ def photo_detail(
     request: Request,
     photo_id: int,
     db: Session = Depends(get_db),
-    current_user: User | None = Depends(get_current_user_optional),
+    username: str | None = Depends(get_username_optional),
 ):
     photo = db.query(Photo).filter(Photo.id == photo_id).first()
     if not photo:
         raise HTTPException(status_code=404, detail="Photo not found")
     return templates.TemplateResponse(
         "photo_detail.html",
-        {"request": request, "photo": photo, "current_user": current_user},
+        {"request": request, "photo": photo, "username": username},
     )
