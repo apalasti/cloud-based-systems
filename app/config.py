@@ -20,7 +20,10 @@ class Settings(BaseSettings):
     RDS_PASSWORD: str | None = None
 
     DB_POOL_SIZE: int = 5
+    # Extra connections SQLAlchemy may open beyond DB_POOL_SIZE when the pool is busy (then closed when idle).
     DB_MAX_OVERFLOW: int = 10
+    # Seconds before recycling a connection; -1 disables (SQLAlchemy default).
+    DB_POOL_RECYCLE: int = 15 * 60
 
     ALGORITHM: str = "HS256"
     ACCESS_TOKEN_EXPIRE_MINUTES: int = 30
@@ -44,7 +47,7 @@ class Settings(BaseSettings):
             password = quote_plus(self.RDS_PASSWORD)
             self.DATABASE_URL = (
                 f"postgresql://{user}:{password}@"
-                f"{self.RDS_HOSTNAME}:{self.RDS_PORT}/{self.RDS_DB_NAME}"
+                f"{self.RDS_HOSTNAME}:{self.RDS_PORT}/{self.RDS_DB_NAME}?sslmode=require"
             )
             return self
         raise ValueError(
