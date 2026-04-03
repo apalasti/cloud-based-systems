@@ -7,7 +7,7 @@ variable "aws_region" {
 variable "project_name" {
   type        = string
   description = "Project name prefix for resource naming."
-  default     = "photo-gallery"
+  default     = "cloud-based-sys"
 }
 
 variable "environment" {
@@ -31,7 +31,7 @@ variable "desired_count" {
 variable "task_cpu" {
   type        = number
   description = "Fargate task CPU units."
-  default     = 512
+  default     = 1024
 }
 
 variable "task_memory" {
@@ -67,6 +67,6 @@ variable "db_username" {
 variable "uvicorn_workers" {
   type        = number
   description = "Number of Uvicorn workers (passed as UVICORN_WORKERS)."
-  default     = 2
+  default     = 1
 }
 
