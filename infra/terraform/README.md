@@ -4,46 +4,36 @@ This folder provisions the infrastructure to run this app on **AWS ECS/Fargate**
 
 ### Architecture
 
-Traffic and data flow (single VPC, multi-AZ public + private subnets):
+Everything below lives in **one VPC** (public subnets for the load balancer and NAT; private subnets for Fargate, RDS, and EFS mount targets).
+
+**1. Request path — what users hit on each page load**
+
+```mermaid
+flowchart LR
+  Browser[Browser] -->|HTTP| ALB[ALB]
+  ALB -->|to_tasks| Fargate[ECS_Fargate]
+  Fargate -->|SQL| RDS[(RDS_PostgreSQL)]
+  Fargate -->|uploaded_files| EFS[EFS]
+```
+
+**2. Deploy and platform traffic — not part of every browser request**
+
+| Concern | What happens |
+| --- | --- |
+| New container versions | CI pushes an image to **ECR**; ECS starts replacement tasks that **pull** that image. |
+| Outbound from private tasks | Tasks have **no public IP**, so pulls and other outbound calls go **NAT Gateway → internet / AWS APIs**. |
+| Startup configuration | At container start, the **task execution role** reads **Secrets Manager** and injects `RDS_PASSWORD` and `SECRET_KEY`. |
+| Observability | App logs go to **CloudWatch Logs**. |
 
 ```mermaid
 flowchart TB
-  subgraph clients [Clients]
-    Browser[Browser]
-  end
-
-  subgraph vpc [VPC]
-    subgraph pub [Public_subnets]
-      ALB[Application_Load_Balancer]
-      NAT[NAT_Gateway]
-    end
-    subgraph priv [Private_subnets]
-      ECS[ECS_Fargate_tasks]
-      RDS_db[(RDS_PostgreSQL)]
-      EFS_fs[EFS_file_system]
-    end
-  end
-
-  ECR[ECR_repository]
-  SM[Secrets_Manager]
-  CW[CloudWatch_Logs]
-  CI[GitHub_Actions]
-
-  Browser -->|HTTP_80| ALB
-  ALB -->|HTTP_5000| ECS
-  ECS -->|PostgreSQL| RDS_db
-  ECS -->|NFS_2049| EFS_fs
-  ECS -->|application_logs| CW
-  ECS -.->|RDS_PASSWORD_SECRET_KEY_at_task_start| SM
-  ECS -->|egress_for_image_pull| NAT
-  NAT -->|internet| Internet((Internet))
-  CI -->|docker_push| ECR
-  ECS -.->|pull_image| ECR
+  GHA[GitHub_Actions] -->|docker_push| ECR[ECR]
+  Task[ECS_Fargate] --> NAT[NAT_Gateway]
+  Task -.->|at_container_start| SM[Secrets_Manager]
+  Task --> CW[CloudWatch_Logs]
 ```
 
-- **Public subnets**: ALB and NAT Gateway (outbound internet for private tasks).
-- **Private subnets**: ECS tasks, RDS, EFS mount targets.
-- **Secrets Manager**: database password and app `SECRET_KEY` are referenced in the task definition; the **task execution role** reads them at container start.
+The diagram above leaves ECR off the NAT branch on purpose: the important idea is **private tasks use NAT for outbound access** (including talking to ECR and other AWS services unless you add **VPC endpoints** later).
 
 ### Prereqs
 
