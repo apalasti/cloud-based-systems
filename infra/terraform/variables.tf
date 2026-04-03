@@ -37,7 +37,7 @@ variable "task_cpu" {
 variable "task_memory" {
   type        = number
   description = "Fargate task memory (MiB)."
-  default     = 1024
+  default     = 2048
 }
 
 variable "db_instance_class" {
