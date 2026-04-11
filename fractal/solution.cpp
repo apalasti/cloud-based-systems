@@ -3,6 +3,7 @@
 // The generated image (.tga) file size is 1024x1024 pixels.
 //
 
+#include <omp.h>
 #include <iostream>
 #include <cstdlib>
 #include <cstdio>
@@ -64,15 +65,18 @@ int main()
         // Start measuring time 
         auto begin = std::chrono::high_resolution_clock::now();
 
-	for (unsigned int y = 0; y < domainHeight; ++y)
+	unsigned int y, x;
+
+	#pragma omp parallel for collapse(2) private(x, y)
+	for (y = 0; y < domainHeight; ++y)
 	{
-		for (unsigned int x = 0; x < domainWidth; ++x)
+		for (x = 0; x < domainWidth; ++x)
 		{
 			std::complex<double> c(x / (double)domainWidth * scale + center.real(),
 				y / (double)domainHeight * scale + center.imag());
 
 			std::complex<double> z(c);
-			for (unsigned int iteration = 0; iteration < maxIterations; ++iteration)
+			for (unsigned int i = 0; i < maxIterations; ++i)
 			{
 				z = z * z + c;
 				if (std::abs(z) > 1.0f)

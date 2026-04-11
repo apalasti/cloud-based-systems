@@ -9,7 +9,7 @@ all: solution.cpp
 
 # run locally
 .PHONY: run-local
-run-local: solution
+run-local: all
 	./solution
 
 # run on the cluster
