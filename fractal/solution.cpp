@@ -52,14 +52,14 @@ int main()
 {
 	const unsigned int domainWidth = 1024;
 	const unsigned int domainHeight = 1024;
+	const unsigned int maxIterations = 100;
+
 	unsigned char *data = new unsigned char[domainWidth * domainHeight * 3];
 	std::memset(data, 0, domainWidth * domainHeight * 3 * sizeof(unsigned char));
 
 	std::complex<double> K(0.353, 0.288);
 	std::complex<double> center(-1.68, -1.23);
 	double scale = 2.35;
-
-	const unsigned int maxIterations = 100;
 
         // Start measuring time 
         auto begin = std::chrono::high_resolution_clock::now();
@@ -80,6 +80,7 @@ int main()
 					data[(x + y * domainWidth) * 3 + 0] = 255;
 					data[(x + y * domainWidth) * 3 + 1] = 255;
 					data[(x + y * domainWidth) * 3 + 2] = 255;
+					break;
 				}
 			}
 		}
@@ -88,7 +89,7 @@ int main()
         // Stop measuring time and calculate the elapsed time
         auto end = std::chrono::high_resolution_clock::now();
         auto elapsed = std::chrono::duration_cast<std::chrono::milliseconds>(end - begin);
-	std::cout << "Elapsed time:" << elapsed.count()*1e-3 << "s" << std::endl;
+	std::cout << "Elapsed time: " << elapsed.count()*1e-3 << "s" << std::endl;
 
 	WriteTGA_RGB("mandelbrot.tga", data, domainWidth, domainHeight);
 	delete[] data;
