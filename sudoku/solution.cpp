@@ -6,6 +6,7 @@
 #include <complex>
 #include <chrono>
 #include <iomanip>
+#include <vector>
 
 
 class Sudoku {
@@ -47,26 +48,48 @@ public:
     }
 
     template <typename Callback>
-    void solve(Callback onSolve) {
-
+    void solve(Callback onSolve, int depth = 99999) {
         for (int y = 0; y < 9; ++y) {
             for (int x = 0; x < 9; ++x) {
                 if (data[y][x] == '0') {
                     // Try digits 1-9
                     for (char val = '1'; val <= '9'; ++val) {
                         if (isAllowed(val, x, y)) {
-                            Sudoku s(*this);
-                            s.data[y][x] = val;
-                            s.solve(onSolve);
+                            if (depth < 20) {
+                                // With copy
+                                Sudoku s = (*this);
+                                #pragma omp task firstprivate(x, y, s, depth)
+			                    {
+                                    s.data[y][x] = val;
+                                    s.solve(onSolve, depth+1);
+                                }
+                            } else {
+                                // With backtracking without copy
+                                data[y][x] = val;
+                                solve(onSolve, depth+1);
+                                data[y][x] = '0';
+                            }
                         }
                     }
-                    return; // Dead end for this branch
+                    return;
                 }
             }
         }
 
         onSolve(*this); // Complete solution found
     }
+
+    template <typename Callback>
+    void solveParallel(Callback onSolve, int depth = 0) {
+        #pragma omp parallel
+        {
+            #pragma omp single
+            {
+                solve(onSolve, depth);
+            }
+        } 
+    }
+
 
     // Parse input string to fill the Sudoku grid
     void parse(const char* input) {
@@ -108,22 +131,16 @@ int main()
         sudokus.emplace_back(input);
     }
 
-
-	omp_lock_t lock;
-	omp_init_lock(&lock);
-
 	for (size_t i = 0; i < sudokus.size(); ++i) {
-		sudokus[i].solve([&](const Sudoku& solution) {
+		sudokus[i].solveParallel([&](const Sudoku& solution) {
 			// omp_set_lock(&lock);
+			std::cout << "Thread id: " << omp_get_thread_num() << std::endl;
 			std::cout << "Sudoku #" << i << std::endl;
 			solution.print();
 			std::cout << std::endl;
 			// omp_unset_lock(&lock);
 		});
 	}
-
-	omp_destroy_lock(&lock);
-
 
         // Stop measuring time and calculate the elapsed time
         auto end = std::chrono::high_resolution_clock::now();
