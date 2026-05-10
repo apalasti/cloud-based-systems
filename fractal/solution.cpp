@@ -53,7 +53,7 @@ int main()
 {
 	const unsigned int domainWidth = 4048;
 	const unsigned int domainHeight = 4048;
-	const unsigned int maxIterations = 500;
+	const unsigned int maxIterations = 1500;
 
 	unsigned char *data = new unsigned char[domainWidth * domainHeight * 3];
 	std::memset(data, 0, domainWidth * domainHeight * 3 * sizeof(unsigned char));
@@ -67,7 +67,7 @@ int main()
 
 	unsigned int y, x;
 
-	#pragma omp parallel for collapse(2) private(x, y)
+	#pragma omp parallel for collapse(2) schedule(guided, 16) private(x, y)
 	for (y = 0; y < domainHeight; ++y)
 	{
 		for (x = 0; x < domainWidth; ++x)
@@ -99,4 +99,3 @@ int main()
 	delete[] data;
 	return 0;
 }
-
