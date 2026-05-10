@@ -93,7 +93,7 @@ int main()
         // Stop measuring time and calculate the elapsed time
         auto end = std::chrono::high_resolution_clock::now();
         auto elapsed = std::chrono::duration_cast<std::chrono::milliseconds>(end - begin);
-	std::cout << "Elapsed time: " << elapsed.count()*1e-3 << "s" << std::endl;
+	std::cout << "Elapsed time: " << elapsed.count() << std::endl;
 
 	WriteTGA_RGB("mandelbrot.tga", data, domainWidth, domainHeight);
 	delete[] data;
